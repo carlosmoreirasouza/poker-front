@@ -1,4 +1,4 @@
-import React, { useMemo, useState } from 'react'
+import { useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
 import { ArrowRight, Check, ChevronDown, ChevronRight, Info, RotateCcw, Spade, TrendingUp, Users } from 'lucide-react'
 import './styles.css'
@@ -22,6 +22,7 @@ const positionSets = {
   9: [basePositions[0], { id: 'UTG+1', label: 'Under the Gun +1', rangeKey: 'UTG' }, { id: 'MP', label: 'Middle Position', rangeKey: 'HJ' }, { id: 'MP+1', label: 'Middle Position +1', rangeKey: 'HJ' }, ...basePositions.slice(1)],
 }
 const ranks = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']
+const displayRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q', 'K']
 const suits = [
   { id: 's', symbol: '♠', name: 'espadas', color: 'dark' },
   { id: 'h', symbol: '♥', name: 'copas', color: 'red' },
@@ -235,8 +236,8 @@ function App() {
             <button role="tab" aria-selected={selection === 'board'} className={selection === 'board' ? 'active' : ''} onClick={() => setSelection('board')}><small>MESA · {street}</small><span>{board.length ? board.map(cardLabel).join('  ') : 'Adicione o flop'}</span></button>
           </div>
           <div className="card-grid" aria-label="Seletor de cartas">
-            {ranks.map((rank) => <div className="rank-row" key={rank}>
-              {suits.map((suit) => {
+            {suits.map((suit) => <div className="suit-row" key={suit.id}>
+              {displayRanks.map((rank) => {
                 const inHand = cards.some((c) => c.rank === rank && c.suit === suit.id)
                 const onBoard = board.some((c) => c.rank === rank && c.suit === suit.id)
                 const selected = selection === 'hand' ? inHand : onBoard

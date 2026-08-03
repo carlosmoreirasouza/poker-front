@@ -52,14 +52,14 @@ h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .card-targets button span { overflow: hidden; width: 100%; color: #34453f; font: 600 11px Manrope; text-overflow: ellipsis; white-space: pre; }
 .card-targets button.active { border-color: #b78338; background: #fffdfa; box-shadow: inset 3px 0 #d5a353; }
 .card-targets button.active small { color: #a46f28; }
-.card-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
-.rank-row { display: contents; }
-.playing-card { height: 49px; min-width: 48px; border: 1px solid #dad9d3; border-radius: 4px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 1px 2px #17271f0b; transition: .15s ease; }
+.card-grid { display: flex; flex-direction: column; gap: 6px; }
+.suit-row { display: grid; grid-template-columns: repeat(13, minmax(0, 1fr)); gap: 5px; }
+.playing-card { height: 49px; min-width: 0; padding: 0 2px; border: 1px solid #dad9d3; border-radius: 4px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 2px; box-shadow: 0 1px 2px #17271f0b; transition: .15s ease; }
 .playing-card:hover:not(:disabled) { border-color: #b78a49; transform: translateY(-2px); box-shadow: 0 4px 9px #182c2215; }
 .playing-card:disabled { opacity: .4; cursor: not-allowed; }
 .playing-card.unavailable { opacity: .23; }
-.playing-card b { font: 700 12px Manrope; color: #172a24; }
-.playing-card span { font-size: 14px; }
+.playing-card b { font: 700 11px Manrope; color: #172a24; }
+.playing-card span { font-size: 12px; }
 .playing-card.red span { color: #b54c46; }.playing-card.blue span { color: #42729d; }.playing-card.green span { color: #3d8065; }.playing-card.dark span { color: #172a24; }
 .playing-card.selected { background: #153d33; border-color: #d5a353; outline: 2px solid #d5a353; outline-offset: -3px; box-shadow: 0 5px 12px #193d3430; }
 .playing-card.selected b { color: white; }.playing-card.selected span { color: #e4b65f; }
@@ -89,5 +89,5 @@ h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .disclaimer { text-align: center; color: #718b82; font-size: 8px; line-height: 1.5; margin: 13px 0 0; position: relative; z-index: 1; }
 footer { width: min(1320px, calc(100% - 56px)); min-height: 70px; margin: 0 auto; display: flex; justify-content: space-between; align-items: center; color: #999d99; font-size: 8px; letter-spacing: 1.3px; }
 footer p { display: flex; align-items: center; gap: 8px; } footer p i { width: 4px; height: 4px; border-radius: 50%; background: #b88237; } footer a { color: #6e7773; text-decoration: none; display: flex; align-items: center; gap: 7px; }
-@media (max-width: 1050px) { .workspace { grid-template-columns: 220px 1fr; }.result-panel { grid-column: 1 / -1; }.card-grid { grid-template-columns: repeat(7, 1fr); } }
-@media (max-width: 700px) { header { padding: 0 18px; grid-template-columns: 1fr auto; }.header-tag { display: none; } main { width: calc(100% - 24px); }.hero-copy { padding: 35px 5px 25px; } h1 { letter-spacing: -2.5px; }.desktop { display: none; }.workspace { grid-template-columns: 1fr; }.position-panel { border-right: 0; border-bottom: 1px solid #ddd; }.positions { display: grid; grid-template-columns: 1fr 1fr; }.hand-panel { padding: 25px 15px; }.card-grid { gap: 4px; }.playing-card { min-width: 0; height: 44px; flex-direction: column; gap: 0; }.result-panel { grid-column: auto; } footer { width: calc(100% - 30px); } footer p { display: none; } }
+@media (max-width: 1050px) { .workspace { grid-template-columns: 220px 1fr; }.result-panel { grid-column: 1 / -1; } }
+@media (max-width: 700px) { header { padding: 0 18px; grid-template-columns: 1fr auto; }.header-tag { display: none; } main { width: calc(100% - 24px); }.hero-copy { padding: 35px 5px 25px; } h1 { letter-spacing: -2.5px; }.desktop { display: none; }.workspace { grid-template-columns: 1fr; }.position-panel { border-right: 0; border-bottom: 1px solid #ddd; }.positions { display: grid; grid-template-columns: 1fr 1fr; }.hand-panel { padding: 25px 15px; }.card-grid { gap: 4px; }.suit-row { gap: 2px; }.playing-card { height: 44px; flex-direction: column; gap: 0; padding: 0; }.playing-card b { font-size: 9px; }.playing-card span { font-size: 10px; }.result-panel { grid-column: auto; } footer { width: calc(100% - 30px); } footer p { display: none; } }
