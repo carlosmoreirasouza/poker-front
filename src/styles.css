@@ -75,6 +75,18 @@ h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .equity-track { height: 4px; margin: 8px 0; border-radius: 2px; background: #ffffff14; overflow: hidden; }
 .equity-track i { display: block; height: 100%; background: linear-gradient(90deg, #b47a2d, #efbd69); border-radius: inherit; }
 .equity-card p { margin: 0; color: #8fa39c; font-size: 8px; }.equity-card p b { color: #c8d4d0; }
+.hand-insights { border-top: 1px solid #ffffff17; margin-top: 12px; padding-top: 11px; }
+.made-hand { display: flex; align-items: center; justify-content: space-between; gap: 10px; }
+.made-hand small, .draws > small { color: #8fa39c; font-size: 7px; font-weight: 800; letter-spacing: 1.25px; }
+.made-hand strong { color: #edf2f0; font: 600 11px Manrope; text-align: right; }
+.draws { border-top: 1px solid #ffffff10; margin-top: 10px; padding-top: 10px; }
+.draws > small { display: block; margin-bottom: 7px; }
+.draw-row { background: #ffffff08; border-left: 2px solid #d9a652; margin-top: 5px; padding: 7px 8px; }
+.draw-row > div { display: flex; align-items: center; justify-content: space-between; gap: 8px; }
+.draw-row strong { color: #e8eeeb; font: 600 9px Manrope; }
+.draw-row span { color: #e3b667; font-size: 8px; white-space: nowrap; }
+.draw-row p { color: #b7c6c1; font: 500 9px Manrope; line-height: 1.5; margin-top: 4px; overflow-wrap: anywhere; }
+.draws .no-draw { color: #8fa39c; font-size: 8px; line-height: 1.45; }
 .action { padding: 20px 0 18px; text-align: center; position: relative; z-index: 1; }
 .action > small { font-size: 8px; font-weight: 700; letter-spacing: 2px; color: #91a59e; }
 .action > strong { display: block; color: #e6ad53; font: 700 43px Manrope; letter-spacing: 2px; margin: 2px 0 11px; }

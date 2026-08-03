@@ -48,6 +48,11 @@ function handCode(cards) {
 }
 
 const rankValue = Object.fromEntries(ranks.map((rank, index) => [rank, 14 - index]))
+const rankNames = {
+  14: 'Ás', 13: 'Rei', 12: 'Dama', 11: 'Valete', 10: 'Dez',
+  9: 'Nove', 8: 'Oito', 7: 'Sete', 6: 'Seis', 5: 'Cinco', 4: 'Quatro', 3: 'Três', 2: 'Dois',
+}
+const handNames = ['Carta alta', 'Um par', 'Dois pares', 'Trinca', 'Sequência', 'Flush', 'Full house', 'Quadra', 'Straight flush']
 
 function evaluateFive(cards) {
   const values = cards.map((card) => rankValue[card.rank]).sort((a, b) => b - a)
@@ -104,6 +109,51 @@ function compareScores(a, b) {
     if ((a[index] || 0) !== (b[index] || 0)) return (a[index] || 0) - (b[index] || 0)
   }
   return 0
+}
+
+function describeScore(score) {
+  if (!score) return ''
+  const category = score[0]
+  if (category === 0) return `Carta alta, ${rankNames[score[1]]}`
+  if (category === 1) return `Um par de ${rankNames[score[1]]}`
+  if (category === 2) return `Dois pares, ${rankNames[score[1]]} e ${rankNames[score[2]]}`
+  if (category === 3) return `Trinca de ${rankNames[score[1]]}`
+  if (category === 4) return `Sequência até ${rankNames[score[1]]}`
+  if (category === 5) return `Flush com ${rankNames[score[1]]}`
+  if (category === 6) return `Full house, ${rankNames[score[1]]} com ${rankNames[score[2]]}`
+  if (category === 7) return `Quadra de ${rankNames[score[1]]}`
+  return `Straight flush até ${rankNames[score[1]]}`
+}
+
+function calculateHandInsights(hero, board) {
+  if (hero.length !== 2 || board.length < 3) return null
+  const knownCards = [...hero, ...board]
+  const currentScore = evaluateHand(knownCards)
+  const used = new Set(knownCards.map((card) => `${card.rank}${card.suit}`))
+  const availableCards = ranks.flatMap((rank) => suits.map((suit) => ({ rank, suit: suit.id })))
+    .filter((card) => !used.has(`${card.rank}${card.suit}`))
+
+  if (board.length === 5) return { current: describeScore(currentScore), draws: [] }
+
+  const improvements = new Map()
+  availableCards.forEach((card) => {
+    const nextScore = evaluateHand([...knownCards, card])
+    if (nextScore[0] <= currentScore[0]) return
+    const category = nextScore[0]
+    if (!improvements.has(category)) improvements.set(category, [])
+    improvements.get(category).push(card)
+  })
+
+  const draws = [...improvements.entries()]
+    .sort(([first], [second]) => second - first)
+    .map(([category, outs]) => ({
+      name: handNames[category],
+      cards: outs.map(cardLabel),
+      outs: outs.length,
+      probability: Math.round((outs.length / availableCards.length) * 1000) / 10,
+    }))
+
+  return { current: describeScore(currentScore), draws }
 }
 
 function seededRandom(seed) {
@@ -170,6 +220,7 @@ function App() {
     return positions.slice(0, current + 1).some((item) => rangeByPosition[item.rangeKey || item.id]?.has(code))
   }, [code, position, positions])
   const equity = useMemo(() => calculateEquity(cards, board), [cards, board])
+  const handInsights = useMemo(() => calculateHandInsights(cards, board), [cards, board])
   const street = board.length >= 5 ? 'RIVER' : board.length === 4 ? 'TURN' : board.length >= 3 ? 'FLOP' : 'PRÉ-FLOP'
 
   const selectCard = (rank, suit) => {
@@ -258,6 +309,16 @@ function App() {
             <div className="equity-heading"><span><TrendingUp size={14}/> PROBABILIDADE NO {street}</span><strong>{equity}%</strong></div>
             <div className="equity-track"><i style={{ width: `${equity}%` }}></i></div>
             <p>Equidade estimada contra <b>1 mão aleatória</b></p>
+            {handInsights && <div className="hand-insights">
+              <div className="made-hand"><small>JOGO ATUAL</small><strong>{handInsights.current}</strong></div>
+              {board.length < 5 && <div className="draws">
+                <small>O QUE A PRÓXIMA CARTA PODE FORMAR</small>
+                {handInsights.draws.length ? handInsights.draws.map((draw) => <div className="draw-row" key={draw.name}>
+                  <div><strong>{draw.name}</strong><span>{draw.outs} {draw.outs === 1 ? 'carta' : 'cartas'} · {draw.probability}%</span></div>
+                  <p>{draw.cards.join('  ')}</p>
+                </div>) : <p className="no-draw">Nenhuma carta melhora a categoria da sua mão agora.</p>}
+              </div>}
+            </div>}
           </div>}
           <div className={`action ${isRaise === false ? 'fold' : ''}`}>
             <small>AÇÃO RECOMENDADA</small>
