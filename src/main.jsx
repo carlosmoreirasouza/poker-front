@@ -26,7 +26,7 @@ const displayRanks = ['A', '2', '3', '4', '5', '6', '7', '8', '9', '10', 'J', 'Q
 const suits = [
   { id: 's', symbol: '♠', name: 'espadas', color: 'dark' },
   { id: 'h', symbol: '♥', name: 'copas', color: 'red' },
-  { id: 'd', symbol: '♦', name: 'ouros', color: 'blue' },
+  { id: 'd', symbol: '♦', name: 'ouros', color: 'red' },
   { id: 'c', symbol: '♣', name: 'paus', color: 'green' },
 ]
 
