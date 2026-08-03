@@ -1,6 +1,6 @@
 import React, { useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowRight, Check, ChevronRight, Info, RotateCcw, Spade } from 'lucide-react'
+import { ArrowRight, Check, ChevronRight, Info, RotateCcw, Spade, TrendingUp } from 'lucide-react'
 import './styles.css'
 
 const positions = [
@@ -37,9 +37,118 @@ function handCode(cards) {
   return sorted[0].rank + sorted[1].rank + (sorted[0].suit === sorted[1].suit ? 's' : 'o')
 }
 
+const rankValue = Object.fromEntries(ranks.map((rank, index) => [rank, 14 - index]))
+
+function evaluateFive(cards) {
+  const values = cards.map((card) => rankValue[card.rank]).sort((a, b) => b - a)
+  const countsByValue = values.reduce((acc, value) => {
+    acc[value] = (acc[value] || 0) + 1
+    return acc
+  }, {})
+  const counts = Object.entries(countsByValue)
+    .map(([value, count]) => ({ value: Number(value), count }))
+    .sort((a, b) => b.count - a.count || b.value - a.value)
+  const flush = cards.every((card) => card.suit === cards[0].suit)
+  const unique = [...new Set(values)]
+  if (unique[0] === 14) unique.push(1)
+  let straightHigh = 0
+  for (let index = 0; index <= unique.length - 5; index += 1) {
+    if (unique[index] - unique[index + 4] === 4) {
+      straightHigh = unique[index]
+      break
+    }
+  }
+  if (flush && straightHigh) return [8, straightHigh]
+  if (counts[0].count === 4) return [7, counts[0].value, counts[1].value]
+  if (counts[0].count === 3 && counts[1].count === 2) return [6, counts[0].value, counts[1].value]
+  if (flush) return [5, ...values]
+  if (straightHigh) return [4, straightHigh]
+  if (counts[0].count === 3) return [3, counts[0].value, ...counts.slice(1).map(({ value }) => value).sort((a, b) => b - a)]
+  if (counts[0].count === 2 && counts[1].count === 2) {
+    const pairs = [counts[0].value, counts[1].value].sort((a, b) => b - a)
+    return [2, ...pairs, counts[2].value]
+  }
+  if (counts[0].count === 2) return [1, counts[0].value, ...counts.slice(1).map(({ value }) => value).sort((a, b) => b - a)]
+  return [0, ...values]
+}
+
+function evaluateHand(cards) {
+  let best = null
+  for (let a = 0; a < cards.length - 4; a += 1) {
+    for (let b = a + 1; b < cards.length - 3; b += 1) {
+      for (let c = b + 1; c < cards.length - 2; c += 1) {
+        for (let d = c + 1; d < cards.length - 1; d += 1) {
+          for (let e = d + 1; e < cards.length; e += 1) {
+            const score = evaluateFive([cards[a], cards[b], cards[c], cards[d], cards[e]])
+            if (!best || compareScores(score, best) > 0) best = score
+          }
+        }
+      }
+    }
+  }
+  return best
+}
+
+function compareScores(a, b) {
+  for (let index = 0; index < Math.max(a.length, b.length); index += 1) {
+    if ((a[index] || 0) !== (b[index] || 0)) return (a[index] || 0) - (b[index] || 0)
+  }
+  return 0
+}
+
+function seededRandom(seed) {
+  let value = seed || 1
+  return () => {
+    value = (value * 1664525 + 1013904223) >>> 0
+    return value / 4294967296
+  }
+}
+
+function calculateEquity(hero, board) {
+  if (hero.length !== 2 || board.length < 3) return null
+  const used = new Set([...hero, ...board].map((card) => `${card.rank}${card.suit}`))
+  const deck = ranks.flatMap((rank) => suits.map((suit) => ({ rank, suit: suit.id })))
+    .filter((card) => !used.has(`${card.rank}${card.suit}`))
+  const seed = [...used].sort().join('').split('').reduce((total, char) => total + char.charCodeAt(0), 0)
+  const random = seededRandom(seed)
+  const simulations = 3000
+  let wins = 0
+  let ties = 0
+
+  const scoreRound = (opponent, runout) => {
+    const fullBoard = [...board, ...runout]
+    const result = compareScores(evaluateHand([...hero, ...fullBoard]), evaluateHand([...opponent, ...fullBoard]))
+    if (result > 0) wins += 1
+    else if (result === 0) ties += 1
+  }
+
+  if (board.length === 5) {
+    for (let first = 0; first < deck.length - 1; first += 1) {
+      for (let second = first + 1; second < deck.length; second += 1) scoreRound([deck[first], deck[second]], [])
+    }
+  } else {
+    for (let simulation = 0; simulation < simulations; simulation += 1) {
+      const shuffled = [...deck]
+      for (let index = 0; index < 2 + (5 - board.length); index += 1) {
+        const target = index + Math.floor(random() * (shuffled.length - index))
+        ;[shuffled[index], shuffled[target]] = [shuffled[target], shuffled[index]]
+      }
+      scoreRound(shuffled.slice(0, 2), shuffled.slice(2, 2 + (5 - board.length)))
+    }
+  }
+  const total = board.length === 5 ? deck.length * (deck.length - 1) / 2 : simulations
+  return Math.round(((wins + ties / 2) / total) * 1000) / 10
+}
+
+function cardLabel(card) {
+  return `${card.rank}${suits.find((suit) => suit.id === card.suit)?.symbol}`
+}
+
 function App() {
   const [position, setPosition] = useState('CO')
   const [cards, setCards] = useState([{ rank: 'A', suit: 's' }, { rank: 'K', suit: 's' }])
+  const [board, setBoard] = useState([{ rank: 'Q', suit: 's' }, { rank: 'J', suit: 'd' }, { rank: '7', suit: 'h' }])
+  const [selection, setSelection] = useState('hand')
   const code = handCode(cards)
   const isRaise = useMemo(() => {
     if (!code) return null
@@ -47,24 +156,32 @@ function App() {
     if (premium.has(code)) return true
     return positions.slice(0, current + 1).some((p) => rangeByPosition[p.id].has(code))
   }, [code, position])
+  const equity = useMemo(() => calculateEquity(cards, board), [cards, board])
+  const street = board.length >= 5 ? 'RIVER' : board.length === 4 ? 'TURN' : board.length >= 3 ? 'FLOP' : 'PRÉ-FLOP'
 
   const selectCard = (rank, suit) => {
     const card = { rank, suit }
-    if (cards.some((c) => c.rank === rank && c.suit === suit)) {
-      setCards(cards.filter((c) => c.rank !== rank || c.suit !== suit))
-    } else if (cards.length < 2) setCards([...cards, card])
-    else setCards([cards[1], card])
+    const inHand = cards.some((c) => c.rank === rank && c.suit === suit)
+    const onBoard = board.some((c) => c.rank === rank && c.suit === suit)
+    if (selection === 'hand') {
+      if (inHand) setCards(cards.filter((c) => c.rank !== rank || c.suit !== suit))
+      else if (!onBoard && cards.length < 2) setCards([...cards, card])
+      else if (!onBoard) setCards([cards[1], card])
+    } else if (onBoard) setBoard(board.filter((c) => c.rank !== rank || c.suit !== suit))
+    else if (!inHand && board.length < 5) setBoard([...board, card])
   }
 
   const nextRound = () => {
     setPosition(positions[(positionIndex[position] + 1) % positions.length].id)
     setCards([])
+    setBoard([])
+    setSelection('hand')
   }
 
   return <div className="app-shell">
     <header>
       <a className="brand" href="#top"><span className="brand-mark"><Spade size={19} fill="currentColor" /></span><span>MESA <b>CERTA</b></span></a>
-      <div className="header-tag"><span>●</span> GUIA PRÉ-FLOP · 6-MAX</div>
+      <div className="header-tag"><span>●</span> GUIA DE JOGO · 6-MAX</div>
       <button className="icon-button" aria-label="Informações"><Info size={19}/></button>
     </header>
 
@@ -72,7 +189,7 @@ function App() {
       <section className="hero-copy">
         <div className="eyebrow"><span></span> DECISÕES MAIS RÁPIDAS. JOGO MAIS SÓLIDO.</div>
         <h1>Sua jogada,<br/><em>na posição certa.</em></h1>
-        <p>Selecione onde você está na mesa, escolha suas cartas<br className="desktop"/> e receba uma orientação pré-flop instantânea.</p>
+        <p>Escolha suas cartas, monte o board e acompanhe<br className="desktop"/> sua orientação e equidade em cada etapa da mão.</p>
       </section>
 
       <section className="workspace">
@@ -87,12 +204,20 @@ function App() {
         </aside>
 
         <div className="hand-panel">
-          <div className="step-title"><span>02</span><div><small>SUA MÃO</small><strong>Quais são suas cartas?</strong></div><button onClick={() => setCards([])} className="clear"><RotateCcw size={13}/> LIMPAR</button></div>
+          <div className="step-title"><span>02</span><div><small>CARTAS DA JOGADA</small><strong>Monte sua mão e a mesa</strong></div><button onClick={() => selection === 'hand' ? setCards([]) : setBoard([])} className="clear"><RotateCcw size={13}/> LIMPAR</button></div>
+          <div className="card-targets" role="tablist" aria-label="Cartas a selecionar">
+            <button role="tab" aria-selected={selection === 'hand'} className={selection === 'hand' ? 'active' : ''} onClick={() => setSelection('hand')}><small>SUA MÃO</small><span>{cards.length ? cards.map(cardLabel).join('  ') : 'Escolha 2 cartas'}</span></button>
+            <button role="tab" aria-selected={selection === 'board'} className={selection === 'board' ? 'active' : ''} onClick={() => setSelection('board')}><small>MESA · {street}</small><span>{board.length ? board.map(cardLabel).join('  ') : 'Adicione o flop'}</span></button>
+          </div>
           <div className="card-grid" aria-label="Seletor de cartas">
             {ranks.map((rank) => <div className="rank-row" key={rank}>
               {suits.map((suit) => {
-                const selected = cards.some((c) => c.rank === rank && c.suit === suit.id)
-                return <button aria-label={`${rank} de ${suit.name}`} aria-pressed={selected} disabled={!selected && cards.length >= 2} onClick={() => selectCard(rank, suit.id)} key={suit.id} className={`playing-card ${suit.color} ${selected ? 'selected' : ''}`}>
+                const inHand = cards.some((c) => c.rank === rank && c.suit === suit.id)
+                const onBoard = board.some((c) => c.rank === rank && c.suit === suit.id)
+                const selected = selection === 'hand' ? inHand : onBoard
+                const unavailable = selection === 'hand' ? onBoard : inHand
+                const full = selection === 'hand' ? cards.length >= 2 : board.length >= 5
+                return <button aria-label={`${rank} de ${suit.name}`} aria-pressed={selected} disabled={unavailable || (!selected && full)} onClick={() => selectCard(rank, suit.id)} key={suit.id} className={`playing-card ${suit.color} ${selected ? 'selected' : ''} ${unavailable ? 'unavailable' : ''}`}>
                   <b>{rank}</b><span>{suit.symbol}</span>
                 </button>
               })}
@@ -103,6 +228,11 @@ function App() {
         <aside className="result-panel">
           <div className="step-title light"><span>03</span><div><small>ORIENTAÇÃO</small><strong>Sua melhor ação</strong></div></div>
           <div className="context"><span>POSIÇÃO <b>{position}</b></span><i></i><span>MÃO <b>{code || '—'}</b></span></div>
+          {equity !== null && <div className="equity-card">
+            <div className="equity-heading"><span><TrendingUp size={14}/> PROBABILIDADE NO {street}</span><strong>{equity}%</strong></div>
+            <div className="equity-track"><i style={{ width: `${equity}%` }}></i></div>
+            <p>Equidade estimada contra <b>1 mão aleatória</b></p>
+          </div>}
           <div className={`action ${isRaise === false ? 'fold' : ''}`}>
             <small>AÇÃO RECOMENDADA</small>
             <strong>{isRaise === null ? 'ESCOLHA 2 CARTAS' : isRaise ? 'RAISE' : 'FOLD'}</strong>

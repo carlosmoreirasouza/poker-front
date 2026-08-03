@@ -20,7 +20,7 @@ main { width: min(1320px, calc(100% - 56px)); margin: 0 auto; flex: 1; }
 h1 { font: 500 clamp(42px, 4.2vw, 64px)/.99 Manrope; margin: 15px 0 15px; letter-spacing: -3.4px; color: #14231f; }
 h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .hero-copy p { color: #67716e; font-size: 14px; line-height: 1.7; margin: 0; }
-.workspace { display: grid; grid-template-columns: 250px minmax(460px, 1fr) 330px; background: #faf9f5; min-height: 534px; border: 1px solid #d6d5ce; border-radius: 7px; box-shadow: 0 18px 60px #1f332316; overflow: hidden; }
+.workspace { display: grid; grid-template-columns: 250px minmax(460px, 1fr) 330px; background: #faf9f5; min-height: 594px; border: 1px solid #d6d5ce; border-radius: 7px; box-shadow: 0 18px 60px #1f332316; overflow: hidden; }
 .position-panel, .hand-panel { padding: 27px 28px; }
 .position-panel { border-right: 1px solid #dfded8; }
 .hand-panel { background: #f7f6f1; }
@@ -40,11 +40,18 @@ h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .tip p { font-size: 9px; line-height: 1.5; margin: 0; }
 .hand-panel .step-title { position: relative; }
 .clear { margin-left: auto; border: 0; background: transparent; font-size: 8px; letter-spacing: 1.3px; color: #929895; display: flex; align-items: center; gap: 5px; }
+.card-targets { display: grid; grid-template-columns: .8fr 1.2fr; gap: 7px; margin: -5px 0 14px; }
+.card-targets button { min-width: 0; height: 52px; padding: 8px 11px; border: 1px solid #deddd6; border-radius: 4px; background: #eeede7; color: #7c8581; text-align: left; display: flex; flex-direction: column; justify-content: center; gap: 3px; }
+.card-targets button small { font-size: 7px; font-weight: 800; letter-spacing: 1.2px; }
+.card-targets button span { overflow: hidden; width: 100%; color: #34453f; font: 600 11px Manrope; text-overflow: ellipsis; white-space: pre; }
+.card-targets button.active { border-color: #b78338; background: #fffdfa; box-shadow: inset 3px 0 #d5a353; }
+.card-targets button.active small { color: #a46f28; }
 .card-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px; }
 .rank-row { display: contents; }
 .playing-card { height: 49px; min-width: 48px; border: 1px solid #dad9d3; border-radius: 4px; background: #fff; display: flex; align-items: center; justify-content: center; gap: 4px; box-shadow: 0 1px 2px #17271f0b; transition: .15s ease; }
 .playing-card:hover:not(:disabled) { border-color: #b78a49; transform: translateY(-2px); box-shadow: 0 4px 9px #182c2215; }
 .playing-card:disabled { opacity: .4; cursor: not-allowed; }
+.playing-card.unavailable { opacity: .23; }
 .playing-card b { font: 700 12px Manrope; color: #172a24; }
 .playing-card span { font-size: 14px; }
 .playing-card.red span { color: #b54c46; }.playing-card.blue span { color: #42729d; }.playing-card.green span { color: #3d8065; }.playing-card.dark span { color: #172a24; }
@@ -55,7 +62,14 @@ h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .step-title.light > span { border-color: #4c675f; color: #e2ad56; }.step-title.light small { color: #b6c2be; }.step-title.light strong { color: white; }
 .context { background: #ffffff09; border: 1px solid #ffffff14; height: 47px; display: flex; align-items: center; justify-content: center; gap: 17px; position: relative; z-index: 1; }
 .context span { color: #9fb0aa; font-size: 8px; letter-spacing: 1.3px; }.context b { color: white; font-size: 12px; margin-left: 5px; }.context i { width: 1px; height: 15px; background: #ffffff20; }
-.action { padding: 29px 0 24px; text-align: center; position: relative; z-index: 1; }
+.equity-card { margin-top: 14px; padding: 13px 14px 11px; border: 1px solid #dca84e45; background: #ffffff08; position: relative; z-index: 1; }
+.equity-heading { display: flex; justify-content: space-between; align-items: center; }
+.equity-heading span { display: flex; align-items: center; gap: 6px; color: #d9ad65; font-size: 7px; font-weight: 800; letter-spacing: 1.3px; }
+.equity-heading strong { color: #f1bd68; font: 700 21px Manrope; }
+.equity-track { height: 4px; margin: 8px 0; border-radius: 2px; background: #ffffff14; overflow: hidden; }
+.equity-track i { display: block; height: 100%; background: linear-gradient(90deg, #b47a2d, #efbd69); border-radius: inherit; }
+.equity-card p { margin: 0; color: #8fa39c; font-size: 8px; }.equity-card p b { color: #c8d4d0; }
+.action { padding: 20px 0 18px; text-align: center; position: relative; z-index: 1; }
 .action > small { font-size: 8px; font-weight: 700; letter-spacing: 2px; color: #91a59e; }
 .action > strong { display: block; color: #e6ad53; font: 700 43px Manrope; letter-spacing: 2px; margin: 2px 0 11px; }
 .action.fold > strong { color: #d36d63; }
