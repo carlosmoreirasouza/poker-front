@@ -1,9 +1,9 @@
 import React, { useMemo, useState } from 'react'
 import { createRoot } from 'react-dom/client'
-import { ArrowRight, Check, ChevronRight, Info, RotateCcw, Spade, TrendingUp } from 'lucide-react'
+import { ArrowRight, Check, ChevronDown, ChevronRight, Info, RotateCcw, Spade, TrendingUp, Users } from 'lucide-react'
 import './styles.css'
 
-const positions = [
+const basePositions = [
   { id: 'UTG', label: 'Under the Gun' },
   { id: 'HJ', label: 'Hijack' },
   { id: 'CO', label: 'Cutoff' },
@@ -11,6 +11,16 @@ const positions = [
   { id: 'SB', label: 'Small Blind' },
   { id: 'BB', label: 'Big Blind' },
 ]
+const positionSets = {
+  2: [{ id: 'BTN', label: 'Button / Small Blind' }, basePositions[5]],
+  3: basePositions.slice(3),
+  4: basePositions.slice(2),
+  5: basePositions.slice(1),
+  6: basePositions,
+  7: [basePositions[0], { id: 'UTG+1', label: 'Under the Gun +1', rangeKey: 'UTG' }, ...basePositions.slice(1)],
+  8: [basePositions[0], { id: 'UTG+1', label: 'Under the Gun +1', rangeKey: 'UTG' }, { id: 'MP', label: 'Middle Position', rangeKey: 'HJ' }, ...basePositions.slice(1)],
+  9: [basePositions[0], { id: 'UTG+1', label: 'Under the Gun +1', rangeKey: 'UTG' }, { id: 'MP', label: 'Middle Position', rangeKey: 'HJ' }, { id: 'MP+1', label: 'Middle Position +1', rangeKey: 'HJ' }, ...basePositions.slice(1)],
+}
 const ranks = ['A', 'K', 'Q', 'J', '10', '9', '8', '7', '6', '5', '4', '3', '2']
 const suits = [
   { id: 's', symbol: '♠', name: 'espadas', color: 'dark' },
@@ -19,7 +29,6 @@ const suits = [
   { id: 'c', symbol: '♣', name: 'paus', color: 'green' },
 ]
 
-const positionIndex = Object.fromEntries(positions.map((p, i) => [p.id, i]))
 const premium = new Set(['AA', 'KK', 'QQ', 'JJ', 'AKs', 'AKo'])
 const rangeByPosition = {
   UTG: new Set(['TT', '99', 'AQs', 'AJs', 'ATs', 'KQs', 'AQo']),
@@ -145,17 +154,20 @@ function cardLabel(card) {
 }
 
 function App() {
+  const [playerCount, setPlayerCount] = useState(6)
   const [position, setPosition] = useState('CO')
   const [cards, setCards] = useState([{ rank: 'A', suit: 's' }, { rank: 'K', suit: 's' }])
   const [board, setBoard] = useState([{ rank: 'Q', suit: 's' }, { rank: 'J', suit: 'd' }, { rank: '7', suit: 'h' }])
   const [selection, setSelection] = useState('hand')
+  const positions = positionSets[playerCount]
+  const currentPositionIndex = positions.findIndex((item) => item.id === position)
   const code = handCode(cards)
   const isRaise = useMemo(() => {
     if (!code) return null
-    const current = positionIndex[position]
+    const current = positions.findIndex((item) => item.id === position)
     if (premium.has(code)) return true
-    return positions.slice(0, current + 1).some((p) => rangeByPosition[p.id].has(code))
-  }, [code, position])
+    return positions.slice(0, current + 1).some((item) => rangeByPosition[item.rangeKey || item.id]?.has(code))
+  }, [code, position, positions])
   const equity = useMemo(() => calculateEquity(cards, board), [cards, board])
   const street = board.length >= 5 ? 'RIVER' : board.length === 4 ? 'TURN' : board.length >= 3 ? 'FLOP' : 'PRÉ-FLOP'
 
@@ -172,16 +184,23 @@ function App() {
   }
 
   const nextRound = () => {
-    setPosition(positions[(positionIndex[position] + 1) % positions.length].id)
+    setPosition(positions[(currentPositionIndex + 1) % positions.length].id)
     setCards([])
     setBoard([])
     setSelection('hand')
   }
 
+  const changePlayerCount = (event) => {
+    const count = Number(event.target.value)
+    const availablePositions = positionSets[count]
+    setPlayerCount(count)
+    if (!availablePositions.some((item) => item.id === position)) setPosition(availablePositions[0].id)
+  }
+
   return <div className="app-shell">
     <header>
       <a className="brand" href="#top"><span className="brand-mark"><Spade size={19} fill="currentColor" /></span><span>MESA <b>CERTA</b></span></a>
-      <div className="header-tag"><span>●</span> GUIA DE JOGO · 6-MAX</div>
+      <div className="header-tag"><span>●</span> GUIA DE JOGO · {playerCount === 6 ? '6-MAX' : `${playerCount} JOGADORES`}</div>
       <button className="icon-button" aria-label="Informações"><Info size={19}/></button>
     </header>
 
@@ -195,6 +214,12 @@ function App() {
       <section className="workspace">
         <aside className="position-panel">
           <div className="step-title"><span>01</span><div><small>SUA POSIÇÃO</small><strong>Onde você está?</strong></div></div>
+          <label className="player-count">
+            <span><Users size={14}/> JOGADORES NA MESA</span>
+            <div><select value={playerCount} onChange={changePlayerCount} aria-label="Quantidade de jogadores na mesa">
+              {Object.keys(positionSets).map((count) => <option value={count} key={count}>{count} jogadores</option>)}
+            </select><ChevronDown size={15}/></div>
+          </label>
           <div className="positions">
             {positions.map((p) => <button key={p.id} onClick={() => setPosition(p.id)} className={position === p.id ? 'active' : ''}>
               <span className="position-code">{p.id}</span><span>{p.label}</span>{position === p.id && <Check size={16}/>} 
@@ -239,7 +264,7 @@ function App() {
             {isRaise !== null && <div className="size"><span>↗</span><p>{isRaise ? <>Abra com <b>2.5 BB</b></> : <>Espere uma situação melhor</>}</p></div>}
           </div>
           <div className="reason"><small>POR QUÊ?</small><p>{isRaise === null ? 'Selecione duas cartas para visualizar a recomendação.' : isRaise ? <><b>{code}</b> está dentro do range recomendado para abrir de <b>{position}</b>.</> : <><b>{code}</b> está fora do range recomendado para abrir de <b>{position}</b>.</>}</p></div>
-          <button className="next" onClick={nextRound}><span>PRÓXIMA RODADA<small>Você estará em {positions[(positionIndex[position] + 1) % positions.length].id}</small></span><ChevronRight/></button>
+          <button className="next" onClick={nextRound}><span>PRÓXIMA RODADA<small>Você estará em {positions[(currentPositionIndex + 1) % positions.length].id}</small></span><ChevronRight/></button>
           <p className="disclaimer">Orientação baseada em estratégia GTO simplificada.<br/>Adapte ao perfil da sua mesa.</p>
         </aside>
       </section>

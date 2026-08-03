@@ -29,6 +29,12 @@ h1 em { font-family: Georgia, serif; font-weight: 400; color: #b17b30; }
 .step-title div { display: flex; flex-direction: column; gap: 2px; }
 .step-title small, .reason small { font-size: 8px; font-weight: 800; letter-spacing: 1.8px; color: #a07336; }
 .step-title strong { font: 600 14px Manrope; }
+.player-count { display: block; margin: -5px 0 14px; }
+.player-count > span { display: flex; align-items: center; gap: 6px; margin-bottom: 7px; color: #8b938f; font-size: 8px; font-weight: 800; letter-spacing: 1.2px; }
+.player-count > div { position: relative; }
+.player-count select { width: 100%; height: 42px; appearance: none; padding: 0 36px 0 13px; border: 1px solid #d8d7d0; border-radius: 4px; outline: none; background: #fffefa; color: #263e36; font: 700 11px Manrope; cursor: pointer; transition: .18s ease; }
+.player-count select:hover, .player-count select:focus { border-color: #b78338; box-shadow: 0 0 0 3px #b7833812; }
+.player-count > div svg { position: absolute; top: 50%; right: 12px; color: #ad7a35; transform: translateY(-50%); pointer-events: none; }
 .positions { display: flex; flex-direction: column; gap: 7px; }
 .positions button { height: 49px; padding: 0 14px; border: 1px solid #e0dfd9; background: #fffefa; color: #7a817e; border-radius: 4px; display: grid; grid-template-columns: 45px 1fr auto; align-items: center; text-align: left; font-size: 11px; transition: .18s ease; }
 .positions button:hover { border-color: #a8b4af; transform: translateX(2px); }
